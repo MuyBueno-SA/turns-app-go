@@ -1,12 +1,13 @@
 package utils
 
 import (
+	"reflect"
 	"testing"
 	"time"
 )
 
 func assertDateTime(t *testing.T, expected TimeRange, actual TimeRange) {
-	if expected != actual {
+	if reflect.DeepEqual(expected, actual) == false {
 		t.Errorf("Expected %v, got %v", expected, actual)
 	}
 }
