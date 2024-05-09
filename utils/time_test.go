@@ -5,21 +5,38 @@ import (
 	"time"
 )
 
-func CompareTime(t *testing.T, expected time.Time, actual time.Time) {
+func assertDateTime(t *testing.T, expected TimeRange, actual TimeRange) {
 	if expected != actual {
 		t.Errorf("Expected %v, got %v", expected, actual)
 	}
 }
 
 func TestGetWeekByDay(t *testing.T) {
-	week_start := time.Date(2024, 2, 26, 0, 0, 0, 0, time.UTC)
-	week_end := time.Date(2024, 3, 3, 23, 59, 59, 0, time.UTC)
 
-	day := time.Date(2024, 2, 29, 0, 0, 0, 0, time.UTC)
+	weekRange := TimeRange{
+		StartTime: time.Date(2024, 2, 26, 0, 0, 0, 0, time.UTC),
+		EndTime:   time.Date(2024, 3, 3, 23, 59, 59, 0, time.UTC),
+	}
 
-	week := GetWeekByDay(day)
+	t.Run("test week mid day", func(t *testing.T) {
+		day := time.Date(2024, 2, 29, 0, 0, 0, 0, time.UTC)
+		week := GetWeekByDay(day)
 
-	CompareTime(t, week_start, week.StartTime)
-	CompareTime(t, week_end, week.EndTime)
+		assertDateTime(t, weekRange, week)
+	})
+
+	t.Run("test week monday", func(t *testing.T) {
+		day := time.Date(2024, 2, 26, 0, 0, 0, 0, time.UTC)
+		week := GetWeekByDay(day)
+
+		assertDateTime(t, weekRange, week)
+	})
+
+	t.Run("test week sunday", func(t *testing.T) {
+		day := time.Date(2024, 3, 3, 23, 59, 59, 0, time.UTC)
+		week := GetWeekByDay(day)
+
+		assertDateTime(t, weekRange, week)
+	})
 
 }

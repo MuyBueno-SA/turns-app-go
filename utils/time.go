@@ -14,6 +14,9 @@ type TimeRange struct {
 func GetWeekByDay(day time.Time) TimeRange {
 	time_zone := day.Location()
 	weekday := int(day.Weekday())
+	if weekday == 0 {
+		weekday = 7
+	}
 
 	mYear, mMonth, mDay := day.AddDate(0, 0, -weekday+1).Date()
 	start := time.Date(mYear, mMonth, mDay, 0, 0, 0, 0, time_zone)
