@@ -21,42 +21,39 @@ func TestHeartbeat(t *testing.T) {
 	assertResponseBody(t, response.Body.String(), "I'm alive!")
 }
 
-func TestGetUsers(t *testing.T) {
-	dbManager := db.DBManager{UsersManager: getInMemoryUsersDBManager()}
+func TestAPPServer(t *testing.T) {
+	dbManager := db.DBManager{UsersManager: db.DefaultInMemoryUsersDBManager()}
 	s := APPServer{DBManager: dbManager}
 
-	t.Run("GET /users", func(t *testing.T) {
+	t.Run("test GetUsers", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/users", nil)
 		response := httptest.NewRecorder()
 
 		s.GetUsers(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
-		want := getUser0()
-		got := getUsersResponse(t, response.Body)
-		if !reflect.DeepEqual(got[0], want) {
-			t.Errorf("got %v, want %v", got[0], want)
-		}
+		assertContentType(t, response, jsonContentType)
+
+		users := getUsersResponse(t, response.Body)
+		assertUsers(t, users, db.UsersSlice)
 	})
 }
 
-func TestNewAPPServer(t *testing.T) {
+func TestNewAPPServerRouting(t *testing.T) {
 
-	dbManager := db.DBManager{UsersManager: getInMemoryUsersDBManager()}
-	s := NewAPPServer(dbManager)
+	dbManager := db.DBManager{UsersManager: db.DefaultInMemoryUsersDBManager()}
+	server := NewAPPServer(dbManager)
 
 	t.Run("GET /users", func(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/users", nil)
 		response := httptest.NewRecorder()
 
-		s.ServeHTTP(response, request)
+		server.ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
-		want := getUser0()
-		got := getUsersResponse(t, response.Body)
-		if !reflect.DeepEqual(got[0], want) {
-			t.Errorf("got %v, want %v", got[0], want)
-		}
+		assertContentType(t, response, jsonContentType)
+		users := getUsersResponse(t, response.Body)
+		assertUsers(t, users, db.UsersSlice)
 	})
 
 	t.Run("GET /heartbeat", func(t *testing.T) {
@@ -64,7 +61,7 @@ func TestNewAPPServer(t *testing.T) {
 		request, _ := http.NewRequest(http.MethodGet, "/heartbeat", nil)
 		response := httptest.NewRecorder()
 
-		s.ServeHTTP(response, request)
+		server.ServeHTTP(response, request)
 
 		assertStatus(t, response.Code, http.StatusOK)
 		assertResponseBody(t, response.Body.String(), "I'm alive!")
@@ -78,6 +75,13 @@ func assertStatus(t *testing.T, got, want int) {
 	}
 }
 
+func assertContentType(t *testing.T, response *httptest.ResponseRecorder, want string) {
+	t.Helper()
+	if response.Result().Header.Get("content-type") != want {
+		t.Errorf("response did not have content-type of %s, got %v", want, response.Result().Header)
+	}
+}
+
 func assertResponseBody(t *testing.T, got, want string) {
 	t.Helper()
 	if got != want {
@@ -85,44 +89,10 @@ func assertResponseBody(t *testing.T, got, want string) {
 	}
 }
 
-func getInMemoryUsersDBManager() *db.InMemoryUsersDBManager {
-	users_slice := []model.User{
-		getUser0(),
-		getUser2(),
-		getUser4(),
-	}
-	return &db.InMemoryUsersDBManager{
-		Users: users_slice,
-	}
-}
-
-func getUser0() model.User {
-	return model.User{
-		ID:       0,
-		Username: "Virginia D'Espósito",
-		Email:    "vir@test.com",
-		Phone:    "123456789",
-		Activity: "Psicopedagoga",
-	}
-}
-
-func getUser2() model.User {
-	return model.User{
-		ID:       2,
-		Username: "Federico Bogado",
-		Email:    "fico@test.com",
-		Phone:    "123456789",
-		Activity: "Developer",
-	}
-}
-
-func getUser4() model.User {
-	return model.User{
-		ID:       4,
-		Username: "Susana Horia",
-		Email:    "susana@other.com",
-		Phone:    "987654321",
-		Activity: "Reiki",
+func assertUsers(t *testing.T, got, want []model.User) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v want %v", got, want)
 	}
 }
 

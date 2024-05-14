@@ -7,6 +7,8 @@ import (
 	dbm "turns-app-go/dbmanager"
 )
 
+const jsonContentType = "application/json"
+
 type APPServer struct {
 	DBManager dbm.DBManager
 	http.Handler
@@ -14,6 +16,7 @@ type APPServer struct {
 
 func (s *APPServer) GetUsers(w http.ResponseWriter, r *http.Request) {
 	users := s.DBManager.UsersManager.GetUsers()
+	w.Header().Set("Content-Type", jsonContentType)
 	json.NewEncoder(w).Encode(users)
 }
 

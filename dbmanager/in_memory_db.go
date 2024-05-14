@@ -1,9 +1,6 @@
 package dbmanager
 
 import (
-	"encoding/json"
-	"fmt"
-	"os"
 	"turns-app-go/model"
 )
 
@@ -15,28 +12,30 @@ func (db *InMemoryUsersDBManager) GetUsers() []model.User {
 	return db.Users
 }
 
-func NewInMemoryUsersDBManager(filePath string) *InMemoryUsersDBManager {
+var UsersSlice = []model.User{
+	{
+		ID:       0,
+		Username: "Virginia D'Espósito",
+		Email:    "vir@test.com",
+		Phone:    "123456789",
+		Activity: "Psicopedagoga",
+	},
+	{
+		ID:       2,
+		Username: "Federico Bogado",
+		Email:    "fico@test.com",
+		Phone:    "123456789",
+		Activity: "Developer",
+	},
+	{
+		ID:       4,
+		Username: "Susana Horia",
+		Email:    "susana@other.com",
+		Phone:    "987654321",
+		Activity: "Reiki",
+	},
+}
 
-	file, err := os.Open(filePath)
-	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
-	}
-
-	defer file.Close()
-
-	// Decode the JSON data into a slice of Person objects
-	var people []model.User
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&people); err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
-	}
-
-	// Print the loaded data
-	for _, p := range people {
-		fmt.Printf("Name: %s, id: %d phone: %s\n", p.Username, p.ID, p.Phone)
-	}
-
-	return &InMemoryUsersDBManager{Users: people}
+func DefaultInMemoryUsersDBManager() *InMemoryUsersDBManager {
+	return &InMemoryUsersDBManager{Users: UsersSlice}
 }
