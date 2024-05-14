@@ -4,10 +4,10 @@ import (
 	"testing"
 )
 
-const configPath = "../configs/app_test_config.toml"
+const ConfigPath = "../configs/app_test_config.toml"
 
 func TestLoadConfig(t *testing.T) {
-	config, err := LoadConfig(configPath)
+	config, err := LoadConfig(ConfigPath)
 	if err != nil {
 		t.Fatalf("Error loading config: %s", err)
 	}

@@ -7,14 +7,16 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
+type BusinessConfig struct {
+	Name          string   `toml:"name" json:"name"`
+	StartTime     string   `toml:"start_time" json:"start_time"`
+	EndTime       string   `toml:"end_time" json:"end_time"`
+	MinModuleTime int      `toml:"min_module_time" json:"min_module_time"`
+	Offices       []string `toml:"offices" json:"offices"`
+}
+
 type Config struct {
-	Business struct {
-		Name          string   `toml:"name" json:"name"`
-		StartTime     string   `toml:"start_time" json:"start_time"`
-		EndTime       string   `toml:"end_time" json:"end_time"`
-		MinModuleTime int      `toml:"min_module_time" json:"min_module_time"`
-		Offices       []string `toml:"offices" json:"offices"`
-	} `toml:"business" json:"business"`
+	Business BusinessConfig `toml:"business" json:"business"`
 }
 
 func LoadConfig(path string) (*Config, error) {

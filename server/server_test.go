@@ -9,62 +9,57 @@ import (
 	"testing"
 	db "turns-app-go/dbmanager"
 	"turns-app-go/model"
+	"turns-app-go/utils"
 )
 
+const ConfigPath = "../configs/app_test_config.toml"
+
 func TestHeartbeat(t *testing.T) {
-	request, _ := http.NewRequest(http.MethodGet, "/heartbeat", nil)
-	response := httptest.NewRecorder()
-
+	request, response := prepareHeartbeatRequest()
 	Heartbeat(response, request)
-
-	assertStatus(t, response.Code, http.StatusOK)
-	assertResponseBody(t, response.Body.String(), "I'm alive!")
+	assertHeartbeatRequest(t, response)
 }
 
 func TestAPPServer(t *testing.T) {
 	dbManager := db.DBManager{UsersManager: db.DefaultInMemoryUsersDBManager()}
-	s := APPServer{DBManager: dbManager}
+	config, _ := utils.LoadConfig(ConfigPath)
+	s := APPServer{DBManager: dbManager, BusinessConfig: config.Business}
 
 	t.Run("test GetUsers", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/users", nil)
-		response := httptest.NewRecorder()
-
+		request, response := prepareGetUsersRequest()
 		s.GetUsers(response, request)
+		assertGetUsersRequest(t, response)
+	})
 
-		assertStatus(t, response.Code, http.StatusOK)
-		assertContentType(t, response, jsonContentType)
-
-		users := getUsersResponse(t, response.Body)
-		assertUsers(t, users, db.UsersSlice)
+	t.Run("test BusinessInfo", func(t *testing.T) {
+		request, response := prepareBusinessInfoRequest()
+		s.GetBusinessInfo(response, request)
+		assertBusinessInfoRequest(t, response)
 	})
 }
 
 func TestNewAPPServerRouting(t *testing.T) {
 
 	dbManager := db.DBManager{UsersManager: db.DefaultInMemoryUsersDBManager()}
-	server := NewAPPServer(dbManager)
-
-	t.Run("GET /users", func(t *testing.T) {
-		request, _ := http.NewRequest(http.MethodGet, "/users", nil)
-		response := httptest.NewRecorder()
-
-		server.ServeHTTP(response, request)
-
-		assertStatus(t, response.Code, http.StatusOK)
-		assertContentType(t, response, jsonContentType)
-		users := getUsersResponse(t, response.Body)
-		assertUsers(t, users, db.UsersSlice)
-	})
+	config, _ := utils.LoadConfig(ConfigPath)
+	server := NewAPPServer(dbManager, config.Business)
 
 	t.Run("GET /heartbeat", func(t *testing.T) {
-
-		request, _ := http.NewRequest(http.MethodGet, "/heartbeat", nil)
-		response := httptest.NewRecorder()
-
+		request, response := prepareHeartbeatRequest()
 		server.ServeHTTP(response, request)
+		assertHeartbeatRequest(t, response)
+	})
 
-		assertStatus(t, response.Code, http.StatusOK)
-		assertResponseBody(t, response.Body.String(), "I'm alive!")
+	t.Run("GET /users", func(t *testing.T) {
+		request, response := prepareGetUsersRequest()
+		server.ServeHTTP(response, request)
+		assertGetUsersRequest(t, response)
+	})
+
+	t.Run("GET /business_info", func(t *testing.T) {
+		request, response := prepareBusinessInfoRequest()
+		server.ServeHTTP(response, request)
+		assertBusinessInfoRequest(t, response)
 	})
 }
 
@@ -89,7 +84,36 @@ func assertResponseBody(t *testing.T, got, want string) {
 	}
 }
 
+func assertHeartbeatRequest(t *testing.T, response *httptest.ResponseRecorder) {
+	t.Helper()
+	assertStatus(t, response.Code, http.StatusOK)
+	assertResponseBody(t, response.Body.String(), "I'm alive!")
+}
+
+func assertGetUsersRequest(t *testing.T, response *httptest.ResponseRecorder) {
+	t.Helper()
+	assertStatus(t, response.Code, http.StatusOK)
+	assertContentType(t, response, jsonContentType)
+	users := getUsersResponse(t, response.Body)
+	assertUsers(t, users, db.UsersSlice)
+}
+
+func assertBusinessInfoRequest(t *testing.T, response *httptest.ResponseRecorder) {
+	t.Helper()
+	assertStatus(t, response.Code, http.StatusOK)
+	assertContentType(t, response, jsonContentType)
+	business := getBusinessInfoResponse(t, response.Body)
+	assertBusinessInfo(t, business, getTestBusinessInfo())
+}
+
 func assertUsers(t *testing.T, got, want []model.User) {
+	t.Helper()
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("got %v want %v", got, want)
+	}
+}
+
+func assertBusinessInfo(t *testing.T, got, want BusinessInfo) {
 	t.Helper()
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("got %v want %v", got, want)
@@ -104,4 +128,49 @@ func getUsersResponse(t *testing.T, body io.Reader) (users []model.User) {
 		t.Fatalf("Unable to parse response from server %q into slice of User, '%v'", body, err)
 	}
 	return
+}
+
+func getBusinessInfoResponse(t *testing.T, body io.Reader) (business BusinessInfo) {
+	t.Helper()
+	err := json.NewDecoder(body).Decode(&business)
+
+	if err != nil {
+		t.Fatalf("Unable to parse response from server %q into BusinessConfig, '%v'", body, err)
+	}
+	return
+}
+
+func prepareHeartbeatRequest() (*http.Request, *httptest.ResponseRecorder) {
+	request, _ := http.NewRequest(http.MethodGet, "/heartbeat", nil)
+	response := httptest.NewRecorder()
+	return request, response
+}
+
+func prepareGetUsersRequest() (*http.Request, *httptest.ResponseRecorder) {
+	request, _ := http.NewRequest(http.MethodGet, "/users", nil)
+	response := httptest.NewRecorder()
+	return request, response
+}
+
+func prepareBusinessInfoRequest() (*http.Request, *httptest.ResponseRecorder) {
+	request, _ := http.NewRequest(http.MethodGet, "/business_info", nil)
+	response := httptest.NewRecorder()
+	return request, response
+}
+
+func getTestBusinessConfig() utils.BusinessConfig {
+	return utils.BusinessConfig{
+		Name:          "Test Business",
+		StartTime:     "08.00",
+		EndTime:       "21.00",
+		MinModuleTime: 60,
+		Offices:       []string{"OFF_01", "OFF_02"},
+	}
+}
+
+func getTestBusinessInfo() BusinessInfo {
+	return BusinessInfo{
+		BusinessConfig: getTestBusinessConfig(),
+		Users:          db.UsersSlice,
+	}
 }
