@@ -1,0 +1,13 @@
+[mongo]
+    server = "localhost"
+    port = 27017
+    db_name = "turns_app-test"
+[business]
+    name = "Test Business"
+    # The start and end time as a string in the format "HH.MM"
+    start_time = "08.00"
+    end_time = "21.00"
+    # The minimum module time in minutes
+    min_module_time = 60
+    # Available offices
+    offices = ["OFF_01", "OFF_02"]
