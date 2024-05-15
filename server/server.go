@@ -27,17 +27,23 @@ type APPServer struct {
 	http.Handler
 }
 
-func (s *APPServer) GetUsers(w http.ResponseWriter, r *http.Request) {
-	users := s.DBManager.UsersManager.GetUsers()
-	JSONResponse(w, users)
-}
-
 func (s *APPServer) GetBusinessInfo(w http.ResponseWriter, r *http.Request) {
 	businessInfo := BusinessInfo{
 		BusinessConfig: s.BusinessConfig,
 		Users:          s.DBManager.UsersManager.GetUsers(),
 	}
 	JSONResponse(w, businessInfo)
+}
+
+func (s *APPServer) GetUsers(w http.ResponseWriter, r *http.Request) {
+	users := s.DBManager.UsersManager.GetUsers()
+	JSONResponse(w, users)
+}
+
+func (s *APPServer) GetWeek(w http.ResponseWriter, r *http.Request) {
+	date := r.URL.Query().Get("date")
+	week := s.DBManager.ReservationsManager.GetWeek(date)
+	JSONResponse(w, week)
 }
 
 func Heartbeat(w http.ResponseWriter, r *http.Request) {
@@ -54,6 +60,7 @@ func NewAPPServer(manager dbm.DBManager, config utils.BusinessConfig) *APPServer
 	router.Handle("/heartbeat", http.HandlerFunc(Heartbeat))
 	router.Handle("/users", http.HandlerFunc(s.GetUsers))
 	router.Handle("/business_info", http.HandlerFunc(s.GetBusinessInfo))
+	router.Handle("/get_week", http.HandlerFunc(s.GetWeek))
 	s.Handler = router
 
 	return s

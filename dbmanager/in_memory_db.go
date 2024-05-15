@@ -12,30 +12,19 @@ func (db *InMemoryUsersDBManager) GetUsers() []model.User {
 	return db.Users
 }
 
-var UsersSlice = []model.User{
-	{
-		ID:       0,
-		Username: "Virginia D'Espósito",
-		Email:    "vir@test.com",
-		Phone:    "123456789",
-		Activity: "Psicopedagoga",
-	},
-	{
-		ID:       2,
-		Username: "Federico Bogado",
-		Email:    "fico@test.com",
-		Phone:    "123456789",
-		Activity: "Developer",
-	},
-	{
-		ID:       4,
-		Username: "Susana Horia",
-		Email:    "susana@other.com",
-		Phone:    "987654321",
-		Activity: "Reiki",
-	},
+type InMemoryReservationsDBManager struct {
+	Reservations []model.Reservation
+}
+
+func (db *InMemoryReservationsDBManager) GetWeek(date string) model.WeekReservations {
+	week := model.GetWeekReservationFromList(db.Reservations)
+	return week
 }
 
 func DefaultInMemoryUsersDBManager() *InMemoryUsersDBManager {
-	return &InMemoryUsersDBManager{Users: UsersSlice}
+	return &InMemoryUsersDBManager{Users: model.UsersSlice}
+}
+
+func DefaultInMemoryReservationsDBManager() *InMemoryReservationsDBManager {
+	return &InMemoryReservationsDBManager{Reservations: model.ReservationsSlice}
 }
