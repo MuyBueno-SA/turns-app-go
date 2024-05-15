@@ -27,3 +27,22 @@ func GetWeekByDay(day time.Time) TimeRange {
 		EndTime:   end,
 	}
 }
+
+func GetWeekDates(day time.Time) []string {
+	weekday := int(day.Weekday())
+	if weekday == 0 {
+		weekday = 7
+	}
+
+	mYear, mMonth, mDay := day.AddDate(0, 0, -weekday+1).Date()
+	start := time.Date(mYear, mMonth, mDay, 0, 0, 0, 0, time.UTC)
+
+	dates := []string{}
+	for i := 0; i < 7; i++ {
+		date := start.AddDate(0, 0, i)
+		dates = append(dates, date.Format("02-01-2006"))
+	}
+
+	return dates
+
+}
