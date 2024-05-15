@@ -21,6 +21,10 @@ func JSONResponse(w http.ResponseWriter, data any) {
 	json.NewEncoder(w).Encode(data)
 }
 
+func enableCors(w *http.ResponseWriter) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
+}
+
 type APPServer struct {
 	BusinessConfig utils.BusinessConfig
 	DBManager      dbm.DBManager
@@ -28,6 +32,7 @@ type APPServer struct {
 }
 
 func (s *APPServer) GetBusinessInfo(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	businessInfo := BusinessInfo{
 		BusinessConfig: s.BusinessConfig,
 		Users:          s.DBManager.UsersManager.GetUsers(),
@@ -36,11 +41,13 @@ func (s *APPServer) GetBusinessInfo(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *APPServer) GetUsers(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	users := s.DBManager.UsersManager.GetUsers()
 	JSONResponse(w, users)
 }
 
 func (s *APPServer) GetWeek(w http.ResponseWriter, r *http.Request) {
+	enableCors(&w)
 	date := r.URL.Query().Get("date")
 	week := s.DBManager.ReservationsManager.GetWeek(date)
 	JSONResponse(w, week)

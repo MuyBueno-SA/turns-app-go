@@ -216,7 +216,7 @@ func prepareBusinessInfoRequest() (*http.Request, *httptest.ResponseRecorder) {
 
 func prepareGetWeekRequest() (*http.Request, *httptest.ResponseRecorder) {
 
-	request, _ := http.NewRequest(http.MethodGet, "/get_week?date=2024-02-28", nil)
+	request, _ := http.NewRequest(http.MethodGet, "/get_week?date=2024.02.28", nil)
 	response := httptest.NewRecorder()
 	return request, response
 }
