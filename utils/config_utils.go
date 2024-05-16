@@ -26,12 +26,12 @@ func LoadConfig(path string) (*Config, error) {
 	}
 	defer file.Close()
 
-	config := &Config{}
 	b, err := io.ReadAll(file)
 	if err != nil {
 		panic(err)
 	}
 
+	config := &Config{}
 	err = toml.Unmarshal(b, config)
 	if err != nil {
 		panic(err)
