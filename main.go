@@ -16,9 +16,8 @@ func main() {
 	config, _ := utils.LoadConfig(ConfigPath)
 	today := time.Now()
 	usersDBManager := db.DefaultInMemoryUsersDBManager()
-	reservationsDBManager := &db.InMemoryReservationsDBManager{
-		Reservations: helper.GenerateRandomTurns(20, config.Business, today),
-	}
+	reservationsDBManager := &db.InMemoryReservationsDBManager{}
+	helper.GenerateRandomTurns(100, config.Business, today, reservationsDBManager)
 
 	dbManager := db.DBManager{UsersManager: usersDBManager, ReservationsManager: reservationsDBManager}
 	s := server.NewAPPServer(dbManager, config.Business)

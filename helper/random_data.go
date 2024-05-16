@@ -4,6 +4,7 @@ import (
 	"math/rand"
 	"time"
 
+	dbm "turns-app-go/dbmanager"
 	"turns-app-go/model"
 	"turns-app-go/utils"
 )
@@ -14,14 +15,13 @@ func hourFromTimeString(timeString string) int {
 }
 
 // generate random turns in the day's week with no overlaping
-func GenerateRandomTurns(max int, business utils.BusinessConfig, day time.Time) []model.Reservation {
+func GenerateRandomTurns(max int, business utils.BusinessConfig, day time.Time, reservationsDB *dbm.InMemoryReservationsDBManager) {
 	weekDays := utils.GetWeekDates(day)
 	modules := []int{}
 	for i := hourFromTimeString(business.StartTime); i < hourFromTimeString(business.EndTime); i++ {
 		modules = append(modules, i)
 	}
 
-	turns := []model.Reservation{}
 	for i := 0; i < max; i++ {
 		randomUserPosition := rand.Intn(len(model.UsersSlice))
 		randomUser := model.UsersSlice[randomUserPosition]
@@ -37,6 +37,9 @@ func GenerateRandomTurns(max int, business utils.BusinessConfig, day time.Time) 
 
 		randomDuration := rand.Intn(4) + 1
 		randomEndTime := randomStartTime + randomDuration
+		if randomEndTime > hourFromTimeString(business.EndTime) {
+			randomEndTime = hourFromTimeString(business.EndTime)
+		}
 
 		turn := model.Reservation{
 			ID:        i,
@@ -45,9 +48,11 @@ func GenerateRandomTurns(max int, business utils.BusinessConfig, day time.Time) 
 			EndTime:   time.Date(randomDay.Year(), randomDay.Month(), randomDay.Day(), randomEndTime, 0, 0, 0, time.UTC),
 			OfficeID:  randomOffice,
 		}
-		turns = append(turns, turn)
+		err := reservationsDB.AddReservation(turn)
+		if err != nil {
+			i--
+			continue
+		}
+
 	}
-
-	return turns
-
 }
