@@ -28,6 +28,7 @@ type WeekReservations struct {
 	Sunday    ReservationList `json:"sunday"`
 }
 
+// GetWeekReservationFromList returns a WeekReservations struct from a list of reservations
 func GetWeekReservationFromList(r []Reservation) WeekReservations {
 	week := WeekReservations{}
 	for _, reservation := range r {

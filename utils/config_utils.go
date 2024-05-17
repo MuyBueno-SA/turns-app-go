@@ -19,6 +19,9 @@ type Config struct {
 	Business BusinessConfig `toml:"business" json:"business"`
 }
 
+// LoadConfig loads the configuration from the given path.
+// The configuration is expected to be in TOML format.
+// The configuration is unmarshalled into a Config struct.
 func LoadConfig(path string) (*Config, error) {
 	file, err := os.Open(path)
 	if err != nil {

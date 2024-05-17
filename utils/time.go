@@ -28,6 +28,9 @@ func GetWeekByDay(day time.Time) TimeRange {
 	}
 }
 
+// GetWeekDates returns the dates of the week as strings for the given day.
+// The week starts on Monday and ends on Sunday.
+// Dates are formatted as "dd-mm-yyyy".
 func GetWeekDates(day time.Time) []string {
 	weekday := int(day.Weekday())
 	if weekday == 0 {
